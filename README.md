@@ -2,7 +2,7 @@
 
 项目汇总：
 
-- `openai-register/`：OpenAI 自动注册脚本（目前不可用，详见下方说明）
+- `openai-register/`：OpenAI 自动注册脚本（详见目录内 README）
 - `grok-register/`：Grok (x.ai) 注册机（详见目录内 README）
 - `tavily-register/`：Tavily 自动注册脚本（目前不可用，详见下方说明）
 
@@ -21,7 +21,6 @@
 - [IPFoxy](https://www.ipfoxy.com/invite/masteralan)（IP 代理服务）
 
 ### ⚠️ 重要提示
-- `openai-register` 目前不可用，如有需要请关注另外一个项目：[`codex-console`](https://github.com/dou-jiang/codex-console)
 - Tavily 官方目前已关闭邮箱注册，原有注册机目前不可用，后续更新请关注上方频道
 
 ### 💬 交流与反馈
