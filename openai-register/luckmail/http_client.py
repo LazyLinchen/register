@@ -160,26 +160,35 @@ class LuckMailHttpClient:
                 url = f"{url}?{urlencode(filtered)}"
         return url
 
-    def _parse_response(self, status_code: int, content: bytes) -> Any:
-        """解析响应数据"""
-        try:
-            data = json.loads(content)
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            # 非 JSON 响应（如文件流）直接返回字节内容
-            return content
-
-        if not isinstance(data, dict):
-            return data
-
-        code = data.get("code", -1)
-        message = data.get("message", "Unknown error")
-
-        if code != 0:
-            if status_code == 401 or code == 401:
-                raise AuthError(message)
-            raise APIError(code, message, data.get("data"))
-
-        return data.get("data")
+    def _parse_response(self, status_code: int, content: bytes) -> Any:
+        """解析响应数据"""
+        try:
+            data = json.loads(content)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            # OpenAPI 正常应返回 JSON；若返回 HTML/文本/维护页，明确抛错，
+            # 避免上层把 bytes 当 dict 用导致二次崩溃。
+            preview = content[:200]
+            try:
+                preview_text = preview.decode("utf-8", errors="replace").strip()
+            except Exception:
+                preview_text = repr(preview)
+            raise APIError(
+                status_code or -1,
+                f"接口返回了非 JSON 响应，可能处于维护中或网关异常: {preview_text}",
+            )
+
+        if not isinstance(data, dict):
+            return data
+
+        code = data.get("code", -1)
+        message = data.get("message", "Unknown error")
+
+        if code != 0:
+            if status_code == 401 or code == 401:
+                raise AuthError(message)
+            raise APIError(code, message, data.get("data"))
+
+        return data.get("data")
 
     # ===================== 异步方法 =====================
 

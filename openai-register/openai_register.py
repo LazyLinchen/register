@@ -182,11 +182,25 @@ class LuckMailInbox:
         except Exception as e:
             raise RuntimeError(f"LuckMail 初始化失败: {e}") from e
 
-        purchases = list((result or {}).get("purchases") or [])
+        if not isinstance(result, dict):
+            preview = repr(result)
+            if isinstance(result, (bytes, bytearray)):
+                preview = bytes(result[:200]).decode("utf-8", errors="replace")
+            raise RuntimeError(f"LuckMail 购买邮箱失败：接口返回异常类型 {type(result).__name__}: {preview[:200]}")
+
+        purchases_raw = result.get("purchases") or []
+        if not isinstance(purchases_raw, list):
+            raise RuntimeError(f"LuckMail 购买邮箱失败：purchases 字段类型异常: {type(purchases_raw).__name__}")
+
+        purchases = list(purchases_raw)
         if not purchases:
             raise RuntimeError("LuckMail 购买邮箱失败：未返回 purchases")
 
-        self.purchase = purchases[0]
+        first_purchase = purchases[0]
+        if not isinstance(first_purchase, dict):
+            raise RuntimeError(f"LuckMail 购买邮箱失败：purchase 项类型异常: {type(first_purchase).__name__}")
+
+        self.purchase = first_purchase
         self.address = str(self.purchase.get("email_address") or "").strip()
         self.token = str(self.purchase.get("token") or "").strip()
         if not self.address or not self.token:
